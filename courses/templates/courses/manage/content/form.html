@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+  {% if object %}
+    Змінити контент "{{ object.tile }}"
+  {% else %}
+    Додати новий контент
+  {% endif %}
+{% endblock  %}
+
+{% block content %}
+  <h2>
+    {% if object %}
+      Змінити контент "{{ object.tile }}"
+    {% else %}
+      Додати новий контент
+    {% endif %}
+  </h2>
+  <div class="row">
+    <h3>Інформація про контент курсу</h3>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <p>
+        <input type="submit" value="Зберегти">
+      </p>
+    </form>
+  </div>
+{% endblock content %}

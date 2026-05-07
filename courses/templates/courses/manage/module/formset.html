@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Редагування: {{ course.title }}
+{% endblock  %}
+
+{% block content %}
+  <h2>Редагування: {{ course.title }}</h2>
+  <div class="row">
+    <h3>Теми курсу</h3>
+    <form method="post">
+      {% csrf_token %}
+      {{ formset|crispy }}
+      {{ formset.management_form }}
+      <input type="submit" class="btn btn-success" value="Зберегти">
+      <a href="{% url "manage_course_list" %}" class="btn btn-secondary">Скасувати</a>
+    </form>
+  </div>
+{% endblock content %}

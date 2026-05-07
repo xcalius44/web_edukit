@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}
+	Вихід | {{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<div class="row justify-content-center">
+		<div class="col-12 col-md-8 col-lg-5">
+			<div class="card shadow-sm border-secondary">
+				<div class="card-body p-4 text-center">
+					<h1 class="h3 mb-3">Ви вийшли з EduKit</h1>
+					<p class="text-body-secondary mb-4">
+						Сесію завершено. Щоб продовжити роботу, увійдіть знову.
+					</p>
+					<div class="d-grid gap-2">
+						<a class="btn btn-primary" href="{% url 'login' %}">Увійти знову</a>
+						<a class="btn btn-outline-secondary" href="{% url 'home' %}">На головну</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

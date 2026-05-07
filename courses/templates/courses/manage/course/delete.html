@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Видалити курс
+{% endblock  %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-12 col-lg-6">
+      <form method="post">
+        {% csrf_token %}
+        <div class="border rounded p-3 mb-3">
+          <h2 class="mb-3">Видалити курс "{{ object.title }}"</h2>
+          <p class="mb-0">Ви впевнені, що хочете видалити курс "{{ object.title }}"?</p>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+          <button type="submit" class="btn btn-danger">🗑️ Так, видалити</button>
+          <a href="{% url 'manage_course_list' %}" class="btn btn-secondary">Скасувати</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock content %}

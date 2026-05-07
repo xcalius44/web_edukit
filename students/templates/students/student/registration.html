@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+	Реєстрація студента | {{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<div class="row justify-content-center">
+		<div class="col-12 col-md-8 col-lg-6 col-xl-5">
+			<div class="card shadow-sm border-secondary">
+				<div class="card-body p-4">
+					<h1 class="h3 mb-3 text-center">Реєстрація студента</h1>
+					<p class="text-muted text-center mb-4">Створіть акаунт, щоб отримати доступ до навчальних курсів.</p>
+
+					<form method="post">
+						{% csrf_token %}
+							{{ form|crispy }}
+
+						<div class="d-grid mb-3">
+							<button type="submit" class="btn btn-primary">Зареєструватися</button>
+						</div>
+
+						<p class="text-center mb-0">
+							Вже маєте акаунт?
+							<a href="{% url 'login' %}" class="text-decoration-none">Увійти</a>
+						</p>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

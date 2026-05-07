@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% load courses %}
+
+{% block title %}
+	{{ object.title }} | {{ block.super }}
+{% endblock %}
+
+{% block content %}
+	<h2 class="mb-3">📘 {{ object.title }}</h2>
+
+	<div class="row">
+		<div class="col-12 col-lg-3 mb-3 mb-lg-0">
+			<h5 class="mb-2">📚 Теми курсу</h5>
+			<ul class="list-group">
+				{% for m in object.modules.all %}
+					<li class="list-group-item border-2 {% if m == module %}active{% endif %}">
+						<a
+							href="{% url 'student_course_detail_module' object.id m.id %}"
+							class="text-decoration-none {% if m == module %}text-white{% endif %}"
+						>
+							Тема {{ m.order|add:1 }}<br>
+							{{ m.title }}
+						</a>
+					</li>
+				{% empty %}
+					<li class="list-group-item text-muted">Теми відсутні.</li>
+				{% endfor %}
+			</ul>
+		</div>
+
+		<div class="col-12 col-lg-9">
+			{% if module %}
+				<div class="card border-2">
+					<div class="card-body">
+						<h4 class="card-title mb-3">Тема {{ module.order|add:1 }}. {{ module.title }}</h4>
+						{% if module.description %}
+							<p class="text-muted">{{ module.description|linebreaks }}</p>
+						{% endif %}
+
+						<hr>
+
+						{% for content in module.contents.all %}
+							{% with item=content.item %}
+								<div class="border border-secondary rounded p-3 mb-3">
+									<h6 class="mb-1">{{ item.title }}</h6>
+									<p class="mb-2">{{ item.render }}</p>
+								</div>
+							{% endwith %}
+						{% empty %}
+							<p class="text-muted mb-0">Для цієї теми контент відсутній.</p>
+						{% endfor %}
+					</div>
+				</div>
+			{% else %}
+				<div class="alert alert-info mb-0">У цьому курсі ще немає тем.</div>
+			{% endif %}
+		</div>
+	</div>
+{% endblock %}
