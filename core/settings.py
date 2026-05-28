@@ -99,3 +99,6 @@ LOGOUT_URL = 'logout'
 # CRISPY FORMS
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-6972e.up.railway.app",
+]
