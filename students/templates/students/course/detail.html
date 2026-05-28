@@ -1,60 +1,96 @@
 {% extends "base.html" %}
 
-{% load courses %}
-
 {% block title %}
-	{{ object.title }} | {{ block.super }}
+    {{ course.title }} | {{ block.super }}
 {% endblock %}
 
 {% block content %}
-	<h2 class="mb-3">📘 {{ object.title }}</h2>
 
-	<div class="row">
-		<div class="col-12 col-lg-3 mb-3 mb-lg-0">
-			<h5 class="mb-2">📚 Теми курсу</h5>
-			<ul class="list-group">
-				{% for m in object.modules.all %}
-					<li class="list-group-item border-2 {% if m == module %}active{% endif %}">
-						<a
-							href="{% url 'student_course_detail_module' object.id m.id %}"
-							class="text-decoration-none {% if m == module %}text-white{% endif %}"
-						>
-							Тема {{ m.order|add:1 }}<br>
-							{{ m.title }}
-						</a>
-					</li>
-				{% empty %}
-					<li class="list-group-item text-muted">Теми відсутні.</li>
-				{% endfor %}
-			</ul>
-		</div>
+<div class="container-fluid mt-3">
+  <div class="row">
 
-		<div class="col-12 col-lg-9">
-			{% if module %}
-				<div class="card border-2">
-					<div class="card-body">
-						<h4 class="card-title mb-3">Тема {{ module.order|add:1 }}. {{ module.title }}</h4>
-						{% if module.description %}
-							<p class="text-muted">{{ module.description|linebreaks }}</p>
-						{% endif %}
+    <!-- SIDEBAR -->
+    <div class="col-3">
 
-						<hr>
+      <ul id="lesson-list" class="list-group mb-3">
 
-						{% for content in module.contents.all %}
-							{% with item=content.item %}
-								<div class="border border-secondary rounded p-3 mb-3">
-									<h6 class="mb-1">{{ item.title }}</h6>
-									<p class="mb-2">{{ item.render }}</p>
-								</div>
-							{% endwith %}
-						{% empty %}
-							<p class="text-muted mb-0">Для цієї теми контент відсутній.</p>
-						{% endfor %}
-					</div>
-				</div>
-			{% else %}
-				<div class="alert alert-info mb-0">У цьому курсі ще немає тем.</div>
-			{% endif %}
-		</div>
-	</div>
+        <!-- COURSE TITLE -->
+        <li class="list-group-item not-draggable">
+          <a href="{% url 'course_detail' course.slug %}"
+             class="fw-bold text-decoration-none"
+             style="font-size: 1.5rem;">
+            {{ course.title }}
+          </a>
+        </li>
+
+        <!-- LESSONS -->
+        {% for l in lessons %}
+          <li class="list-group-item {% if selected_lesson and selected_lesson.id == l.id %}active{% endif %}">
+            <a href="?lesson={{ l.id }}"
+               class="text-decoration-none {% if selected_lesson and selected_lesson.id == l.id %}text-white{% endif %}">
+              {{ l.order|add:1 }}. {{ l.title }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="col-9">
+
+      {% if selected_lesson %}
+
+        <!-- LESSON TITLE -->
+        <h2 class="mb-4">
+          {{ selected_lesson.order|add:1 }}. {{ selected_lesson.title }}
+        </h2>
+
+        <!-- VIDEO -->
+        {% if selected_lesson.video %}
+          <div class="ratio ratio-16x9 mb-4">
+            <iframe src="{{ selected_lesson.video }}" allowfullscreen></iframe>
+          </div>
+        {% endif %}
+
+        <!-- DESCRIPTION -->
+        {% if selected_lesson.description %}
+          <h4 class="mb-2">Опис уроку</h4>
+          <p class="text-muted mb-4">{{ selected_lesson.description|linebreaks }}</p>
+        {% endif %}
+
+        <!-- LINKS -->
+        {% if selected_lesson.links %}
+          <h4 class="mb-2">Корисні посилання</h4>
+          <p class="mb-4">{{ selected_lesson.links|linebreaks }}</p>
+        {% endif %}
+
+        <!-- FILE -->
+        {% if selected_lesson.file %}
+          <h4 class="mb-2">Матеріали</h4>
+          <a href="{{ selected_lesson.file.url }}" class="btn btn-primary">
+            📄 Завантажити файл
+          </a>
+        {% endif %}
+
+      {% else %}
+
+        <!-- COURSE DESCRIPTION -->
+        <h3 class="mb-3">{{ course.title }}</h3>
+
+        <p class="text-muted mb-2">
+          Автор: {{ course.owner.get_full_name|default:course.owner.username }}
+        </p>
+
+        <hr>
+
+        <p>{{ course.overview|linebreaks }}</p>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+
 {% endblock %}

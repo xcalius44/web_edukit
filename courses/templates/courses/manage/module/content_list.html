@@ -1,109 +1,113 @@
 {% extends "base.html" %}
 
-{% load course %}
-
-{% block title %}
-  Тема {{ module.order|add:1 }}: {{ module.title }}
-{% endblock  %}
-
 {% block content %}
-{% with course=module.course %}
-  <h2>Курс "{{ course.title }}"</h2>
+<div class="container-fluid mt-4">
   <div class="row">
-    <div class="col-3">
-      <h3>
-        <a href="{% url 'course_module_update' course.id %}" class="text-decoration-none">📝</a> Теми
-      </h3>
-      <ul id="modules" class="list-group">
-        {% for m in course.modules.all %}
-          <li data-id="{{ m.id }}" class="list-group-item {% if m == module %} active {% endif %}" draggable="true">
-            {% if m == module %}👉 {% endif %}
-            <a href="{% url 'module_content_list' m.id %}" class="text-decoration-none">
-              Тема <span class="order">{{ m.order|add:1 }}</span><br>
-              {{ m.title }}
-            </a>
-          </li>
-        {% empty %}
-          <li>Теми відсутні</li>
+
+    <!-- LEFT SIDE: LESSON LIST -->
+    <div class="col-3 border-end">
+
+      <h5 class="mb-3">Уроки</h5>
+
+      <ul class="list-group mb-3">
+        {% for l in lessons %}
+          <a href="{% url 'course_studio_lesson' course.id l.id %}"
+             class="list-group-item {% if lesson and lesson.id == l.id %}active{% endif %}">
+            {{ l.order|add:1 }}. {{ l.title }}
+          </a>
         {% endfor %}
       </ul>
-      <p class="mt-2">
-        <a href="{% url 'course_module_update' course.id %}" class="btn btn-outline-primary btn-sm text-decoration-none">
-          📝 Змінити теми
+
+      <!-- ADD LESSON BUTTON -->
+      <a href="{% url 'lesson_create' course.id %}" class="btn btn-success w-100">
+        ➕ Додати урок
+      </a>
+
+    </div>
+
+    <!-- RIGHT SIDE: EDITOR -->
+    <div class="col-9">
+
+      {% if not lesson %}
+        <!-- COURSE INFO EDITOR -->
+        <h3>Редагувати курс</h3>
+
+        <form method="post">
+          {% csrf_token %}
+          <label>Назва</label>
+          <input class="form-control mb-2" name="title" value="{{ course.title }}">
+
+          <label>Slug</label>
+          <input class="form-control mb-2" name="slug" value="{{ course.slug }}">
+
+          <label>Опис</label>
+          <textarea class="form-control mb-2" name="overview">{{ course.overview }}</textarea>
+
+          <button class="btn btn-primary">Зберегти</button>
+        </form>
+
+      {% else %}
+        <!-- LESSON EDITOR -->
+        <h3>{{ lesson.title }}</h3>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <label>Назва уроку</label>
+          <input class="form-control mb-2" name="title" value="{{ lesson.title }}">
+
+          <label>Відео (URL)</label>
+          <input class="form-control mb-2" name="video" value="{{ lesson.video }}">
+
+          <label>Опис</label>
+          <textarea class="form-control mb-2" name="description">{{ lesson.description }}</textarea>
+
+          <label>Посилання</label>
+          <textarea class="form-control mb-2" name="links">{{ lesson.links }}</textarea>
+
+          <label>Файл</label>
+          <input type="file" class="form-control mb-2" name="file">
+
+          <button class="btn btn-primary">Зберегти урок</button>
+        </form>
+
+        <hr>
+
+        <!-- CONTENT BLOCKS -->
+        <h4>Контент уроку</h4>
+
+        {% if lesson.contents.all %}
+          <ul class="list-group mb-3">
+            {% for c in lesson.contents.all %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{{ c.title }}</strong><br>
+                  {% if c.text %}<small>Текст</small>{% endif %}
+                  {% if c.video %}<small>Відео</small>{% endif %}
+                  {% if c.file %}<small>Файл</small>{% endif %}
+                  {% if c.link %}<small>Посилання</small>{% endif %}
+                </div>
+
+                <div>
+                  <a href="{% url 'content_update' lesson.id c.id %}" class="btn btn-outline-secondary btn-sm">✏️</a>
+                  <a href="{% url 'content_delete' lesson.id c.id %}" class="btn btn-outline-danger btn-sm">🗑️</a>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">Контент відсутній.</p>
+        {% endif %}
+
+        <!-- ADD CONTENT -->
+        <a href="{% url 'content_create' lesson.id %}" class="btn btn-outline-primary">
+          ➕ Додати контент
         </a>
-      </p>
+
+      {% endif %}
+
     </div>
-    <div id="module-contents" class="col-9">
-      <h3>Тема {{ module.order|add:1 }}. {{module.title }}</h3>
-      <hr>
-      {% for content in module.contents.all %}
-        <div data-id="{{ content.id }}" class="content border border-secondary border-1 rounded p-2 mb-1 d-flex justify-content-between align-items-center" draggable="true" style="cursor: grab;">
-          {% with item=content.item %}
-            <span>{{ item }} ({{ item|model_name|capfirst }})</span>
-            <span>
-              <a href="{% url 'module_content_update' module.id item|model_name item.id %}" class="btn btn-outline-secondary">
-                ✏️ Змінити
-              </a>
-              <form action="{% url 'module_content_delete' content.id %}" method="post" class="d-inline-block">
-                {% csrf_token %}
-                <input type="submit" value="🗑️ Видалити" class="btn btn-outline-danger">
-              <span>
-          {% endwith %}
-        </div>
-      {% empty %}
-        <p>Контент відсутній.</p>
-      {% endfor %}
-      <h5>Додати:</h5>
-      <ul class="list-group list-group-horizontal">
-        {% for content in content_types %}
-          <li class="list-group-item">
-            <a href="{% url 'module_content_create' module.id content %}" class="text-decoration-none">{{ content|capfirst }}</a>
-          </li>
-        {% endfor %}
-      </ul>
-    </div>
+
   </div>
-{% endwith %}
-{% endblock content %}
-
-{% block include_js %}
-  {{ block.super }}
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5sortable/0.14.0/html5sortable.min.js" ></script>
-{% endblock  %}
-
-{% block domready %}
-  var options = {
-    method: 'POST',
-    mode: 'same-origin',
-  }
-  const moduleOrderUrl = "{% url 'module_order' %}";
-
-  sortable('#modules', {
-    forcePlaceHolderSize: true,
-    placeholderClass: 'placeholder'
-  })[0].addEventListener('sortupdate', function(e) {
-    modulesOrder = {};
-    var modules = document.querySelectorAll('#modules li');
-    modules.forEach(function(module, index) {
-      modulesOrder[module.dataset.id] = index;
-      module.querySelector(".order").innerHTML = index + 1;
-      options['body'] = JSON.stringify(modulesOrder);
-      fetch(moduleOrderUrl, options)
-    })
-  });
-
-  const contentOrderUrl = "{% url 'content_order' %}";
-  
-  sortable('#module-contents', {
-    forcePlaceHolderSize: true,
-    placeholderClass: 'placeholder'
-  })[0].addEventListener('sortupdate', function(e) {
-    contentOrder = {};
-    var contents = document.querySelectorAll('#module-contents div.content');
-    contents.forEach(function(content, index) {
-      contentOrder[content.dataset.id] = index;
-      options['body'] = JSON.stringify(contentOrder);
-      fetch(contentOrderUrl, options)
-    })
-  });
-{% endblock  %}
+</div>
+{% endblock %}

@@ -7,6 +7,10 @@ from django.template.loader import render_to_string
 from .fields import OrderField
 
 
+from django.contrib.auth.models import User
+from django.db import models
+
+
 class Subject(models.Model):
     title = models.CharField(max_length=200, verbose_name="Назва")
     slug = models.SlugField(max_length=200, unique=True)
@@ -19,6 +23,7 @@ class Subject(models.Model):
     def __str__(self):
         return self.title
 
+
 class Course(models.Model):
     owner = models.ForeignKey(User, related_name='courses_created', on_delete=models.CASCADE, verbose_name="Викладач")
     subject = models.ForeignKey(Subject, related_name="courses", on_delete=models.CASCADE, verbose_name="Спеціалізація")
@@ -28,46 +33,48 @@ class Course(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     students = models.ManyToManyField(User, related_name='course_joined', blank=True, verbose_name="Зараховані студенти")
 
+    published = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = "Курс"
         verbose_name_plural = "Курси"
         ordering = ['-created']
-    
+
     def __str__(self):
         return self.title
 
-class Module(models.Model):
-    course = models.ForeignKey(Course, related_name="modules", on_delete=models.CASCADE, verbose_name="Курс")
-    title = models.CharField(max_length=500, verbose_name="Назва")
-    description = models.TextField(blank=True, verbose_name="Опис")
-    order = OrderField(blank=True, for_fields=['course'])
+
+class Lesson(models.Model):
+    course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    video = models.URLField(blank=True)
+    description = models.TextField(blank=True)
+    links = models.TextField(blank=True)
+    file = models.FileField(upload_to='lessons/files/', blank=True)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        verbose_name = "Тема"
-        verbose_name_plural = "Теми"
         ordering = ['order']
 
     def __str__(self):
-        return f"{self.order}. {self.title}"
+        return self.title
+
 
 class Content(models.Model):
-    module = models.ForeignKey(Module, related_name="contents", on_delete=models.CASCADE, verbose_name="Тема")
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name="Тип контенту",
-                                     limit_choices_to={'model__in': (
-                                         'text',
-                                         'file',
-                                         'video',
-                                         'image',
-                                         'url',
-                                     )})
-    object_id = models.PositiveIntegerField()
-    item = GenericForeignKey('content_type', 'object_id')
-    order = OrderField(blank=True, for_fields=['module'])
+    lesson = models.ForeignKey(Lesson, related_name="contents", on_delete=models.CASCADE, verbose_name="Урок")
+    title = models.CharField(max_length=200)
+    text = models.TextField(blank=True)
+    file = models.FileField(upload_to="content/files/", blank=True)
+    video = models.URLField(blank=True)
+    link = models.URLField(blank=True)
 
     class Meta:
         verbose_name = "Контент"
         verbose_name_plural = "Контент"
-        ordering = ['order']
+        ordering = ['id']
+
+    def __str__(self):
+        return self.title
 
 class BaseContent(models.Model):
     owner = models.ForeignKey(User, related_name="%(class)s_related", on_delete=models.CASCADE, verbose_name="Автор")

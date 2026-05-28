@@ -2,34 +2,163 @@
 
 {% block title %}
   Мої курси
-{% endblock  %}
+{% endblock %}
 
 {% block content %}
-  <h2>Мої курси</h2>
-  <div class="row">
-    <div class="col">
-      <ul class="list-group mb-3">
-        {% for course in object_list %}
-          <li class="list-group-item border-2 d-flex justify-content-between align-items-center">
-            <span>📚 {{ course.title }}</span>
-            <span>
-              <a href="{% url 'course_edit' course.id %}" class="btn btn-sm btn-outline-primary me-1">✏️ Змінити</a>
-              <a href="{% url 'course_module_update' course.id %}" class="btn btn-sm btn-outline-primary me-1">📋 Теми курсу</a>
-              {% if course.modules.count > 0 %}
-                <a href="{% url 'module_content_list' course.modules.first.id %}" class="btn btn-sm btn-outline-primary me-1">
-                  🗃️ Контент
-                </a>
-              {% endif %}
-              <a href="{% url 'course_delete' course.id %}" class="btn btn-sm btn-outline-danger">🗑️ Видалити</a>
-            </span>
-          </li>
-        {% empty %}
-          <li class="list-group-item border-2 text-center text-muted">Відсутні створені курси</li>
-        {% endfor %}
-      </ul>
-      <div class="text-center">
-        <a href="{% url 'course_create' %}" class="btn btn-success">➕ Створити новий курс</a>
-      </div>
-    </div>
+<div class="container mt-4">
+
+  <h2 class="mb-4">Мої курси</h2>
+
+<!-- ⭐ ENROLLED COURSES -->
+<h4 class="mb-3">Курси, на які я зарахований</h4>
+<ul class="list-group mb-4">
+  {% for course in enrolled_courses %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <span>🎓 {{ course.title }}</span>
+
+      <!-- ❗ НІЯКИХ КНОПОК -->
+      <span class="text-muted">Студент</span>
+    </li>
+  {% empty %}
+    <li class="list-group-item text-muted">Ви не зараховані на жоден курс</li>
+  {% endfor %}
+</ul>
+
+
+  <!-- ⭐ PUBLISHED -->
+  <h4 class="mb-3">Опубліковані курси</h4>
+  <ul class="list-group mb-4">
+    {% for course in published_courses %}
+      <li class="list-group-item">
+  <div class="d-flex align-items-center">
+
+    <!-- Course title -->
+    <span class="flex-grow-1">✅ {{ course.title }}</span>
+
+    <!-- Buttons (shrink to fit, pushed right) -->
+    <span class="d-flex gap-2 ms-auto">
+
+      <a href="{% url 'course_studio' course.id %}"
+   class="btn btn-sm btn-outline-primary"
+   title="Редактор курсу">✏️</a>
+
+  {% if course.published %}
+    <form action="{% url 'course_unpublish' course.id %}" method="post" class="d-inline">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-warning" title="Зняти з публікації">⛔</button>
+    </form>
+  {% else %}
+    <form action="{% url 'course_publish' course.id %}" method="post" class="d-inline">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-success" title="Опублікувати курс">🚀</button>
+    </form>
+  {% endif %}
+
+  <a href="{% url 'course_delete' course.id %}"
+     class="btn btn-sm btn-outline-danger"
+     title="Видалити курс">🗑️</a>
+
+</span>
+
+    <!-- Status text (fixed width, right aligned) -->
+    <span class="text-muted text-end ms-3" style="width: 110px;">
+      Опублікований
+    </span>
+
   </div>
-{% endblock content %}
+</li>
+
+
+
+    {% empty %}
+      <li class="list-group-item d-flex align-items-center">
+  <span class="flex-grow-1 text-muted">Немає опублікованих курсів</span>
+
+  <!-- Invisible placeholder buttons to match height -->
+  <span class="d-flex gap-2 ms-auto">
+    <button class="btn btn-sm invisible">.</button>
+  </span>
+
+  <span class="text-muted text-end ms-3" style="width: 130px;">
+    Опубліковані
+  </span>
+</li>
+
+
+    {% endfor %}
+  </ul>
+
+  <!-- ⭐ UNPUBLISHED -->
+  <h4 class="mb-3">Неопубліковані курси</h4>
+  <ul class="list-group mb-4">
+    {% for course in unpublished_courses %}
+      <li class="list-group-item">
+  <div class="d-flex align-items-center">
+
+    <!-- Course title -->
+    <span class="flex-grow-1">⏳ {{ course.title }}</span>
+
+    <!-- Buttons (shrink to fit, pushed right) -->
+    <span class="d-flex gap-2 ms-auto">
+
+<a href="{% url 'course_studio' course.id %}"
+   class="btn btn-sm btn-outline-primary"
+   title="Редактор курсу">✏️</a>
+
+
+  {% if course.published %}
+    <form action="{% url 'course_unpublish' course.id %}" method="post" class="d-inline">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-warning" title="Зняти з публікації">⛔</button>
+    </form>
+  {% else %}
+    <form action="{% url 'course_publish' course.id %}" method="post" class="d-inline">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-success" title="Опублікувати курс">🚀</button>
+    </form>
+  {% endif %}
+
+  <a href="{% url 'course_delete' course.id %}"
+     class="btn btn-sm btn-outline-danger"
+     title="Видалити курс">🗑️</a>
+
+</span>
+
+    <!-- Status text (fixed width, right aligned) -->
+    <span class="text-muted text-end ms-3" style="width: 130px;">
+      Неопублікований
+    </span>
+
+  </div>
+</li>
+
+
+
+
+
+    {% empty %}
+      <li class="list-group-item d-flex align-items-center">
+  <span class="flex-grow-1 text-muted">Немає неопублікованих курсів</span>
+
+  <!-- Invisible placeholder buttons to match height -->
+  <span class="d-flex gap-2 ms-auto">
+    <button class="btn btn-sm invisible">.</button>
+  </span>
+
+  <span class="text-muted text-end ms-3" style="width: 130px;">
+    Неопубліковані
+  </span>
+</li>
+
+
+    {% endfor %}
+  </ul>
+
+  <div class="text-center">
+    <a href="{% url 'course_create' %}" class="btn btn-success">➕ Створити новий курс</a>
+  </div>
+
+</div>
+{% endblock %}
+
+

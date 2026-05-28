@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Редагувати профіль{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Редагувати профіль</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button class="btn btn-primary mt-3">Зберегти зміни</button>
+    <a href="{% url 'teacher_profile' profile.id %}" class="btn btn-secondary mt-3">Скасувати</a>
+  </form>
+</div>
+{% endblock %}

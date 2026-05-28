@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+  <div class="row">
+
+    <!-- LEFT SIDE: LESSON LIST -->
+    <div class="col-3 border-end">
+
+      <ul id="lesson-list" class="list-group mb-3">
+
+        <!-- COURSE TITLE -->
+        <li class="list-group-item not-draggable">
+          <a href="{% url 'course_studio' course.id %}"
+             class="fw-bold text-decoration-none"
+             style="font-size: 1.7rem;">
+            {{ course.title }}
+          </a>
+        </li>
+
+        <!-- LESSONS -->
+        {% for l in lessons %}
+          <li class="list-group-item d-flex justify-content-between align-items-center lesson-item
+                     {% if lesson and lesson.id == l.id %}active{% endif %}"
+              data-id="{{ l.id }}"
+              draggable="true">
+
+            <a href="{% url 'course_studio_lesson' course.id l.id %}"
+               class="text-decoration-none {% if lesson and lesson.id == l.id %}text-white{% endif %}">
+              {{ l.order|add:1 }}. {{ l.title }}
+            </a>
+
+            <span class="text-muted small">⇅</span>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <!-- ADD LESSON BUTTON -->
+      <form method="post" class="mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_lesson">
+        <button class="btn btn-success w-100">➕ Додати урок</button>
+      </form>
+
+    </div>
+
+    <!-- RIGHT SIDE: EDITOR -->
+    <div class="col-9">
+
+      {% if not lesson %}
+        <h3>Редагувати курс</h3>
+
+        <form method="post">
+          {% csrf_token %}
+          <label>Назва</label>
+          <input class="form-control mb-2" name="title" value="{{ course.title }}">
+
+          <label>Slug</label>
+          <input class="form-control mb-2" name="slug" value="{{ course.slug }}">
+
+          <label>Опис</label>
+          <textarea class="form-control mb-2" name="overview">{{ course.overview }}</textarea>
+
+          <button class="btn btn-primary w-100" name="action" value="final_save">Зберегти</button>
+        </form>
+
+      {% else %}
+
+        <!-- LESSON HEADER -->
+        <h3 id="lesson-header">{{ lesson.title }}</h3>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" id="lesson_id" value="{{ lesson.id }}">
+
+          <label>Назва уроку</label>
+          <input class="form-control mb-2 autosave" name="title" value="{{ lesson.title }}">
+
+          <label>Відео (URL)</label>
+          <input class="form-control mb-2 autosave" name="video" value="{{ lesson.video }}">
+
+          <label>Опис</label>
+          <textarea class="form-control mb-2 autosave" name="description">{{ lesson.description }}</textarea>
+
+          <label>Посилання</label>
+          <textarea class="form-control mb-2 autosave" name="links">{{ lesson.links }}</textarea>
+          
+<label>Файл</label>
+<input type="file" class="form-control mb-2" name="file">
+
+{% if lesson.file %}
+    <div class="mt-3 p-2 border rounded">
+
+        <p class="mb-2 fw-semibold">Поточний файл:</p>
+
+        <!-- BUTTON ROW -->
+        <div class="d-flex align-items-center gap-2">
+
+            <!-- View file -->
+            <a href="{{ lesson.file.url }}" target="_blank"
+               class="btn btn-outline-secondary btn-sm">
+                📄 Переглянути / Завантажити
+            </a>
+
+            <!-- Delete file -->
+            <form method="post" class="m-0 p-0">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_file">
+                <button class="btn btn-outline-danger btn-sm">
+                    🗑️ Видалити файл
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+{% endif %}
+
+
+<!-- Add spacing before buttons -->
+<div class="mt-4 d-flex gap-2">
+
+    <button class="btn btn-primary" name="action" value="final_save">
+        Зберегти
+    </button>
+
+    <button type="button" class="btn btn-danger"
+            data-bs-toggle="modal" data-bs-target="#deleteLessonModal">
+        🗑️ Видалити урок
+    </button>
+
+</div>
+
+
+        </form>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+
+<!-- DELETE LESSON MODAL -->
+<div class="modal fade" id="deleteLessonModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Підтвердження видалення</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        Ви впевнені, що хочете видалити цей урок?
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_lesson">
+          <button type="submit" class="btn btn-danger">Видалити</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- AUTOSAVE SCRIPT -->
+<script>
+let autosaveTimer = null;
+
+function autosave() {
+    clearTimeout(autosaveTimer);
+
+    autosaveTimer = setTimeout(() => {
+
+        const formData = new FormData();
+        formData.append("action", "autosave_lesson");
+        formData.append("lesson_id", document.getElementById("lesson_id").value);
+        formData.append("title", document.querySelector("input[name='title']").value);
+        formData.append("video", document.querySelector("input[name='video']").value);
+        formData.append("description", document.querySelector("textarea[name='description']").value);
+        formData.append("links", document.querySelector("textarea[name='links']").value);
+
+        fetch("", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            body: formData
+        }).then(() => {
+
+            // Update header
+            document.getElementById("lesson-header").textContent =
+                document.querySelector("input[name='title']").value;
+
+            // Update sidebar
+            const activeItem = document.querySelector(".lesson-item.active a");
+            if (activeItem) {
+                const newTitle = document.querySelector("input[name='title']").value;
+                const order = activeItem.textContent.split(".")[0];
+                activeItem.textContent = order + ". " + newTitle;
+            }
+        });
+
+    }, 400);
+}
+
+document.querySelectorAll(".autosave").forEach(el => {
+    el.addEventListener("input", autosave);
+});
+</script>
+
+{% endblock %}

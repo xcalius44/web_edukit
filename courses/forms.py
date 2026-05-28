@@ -1,11 +1,9 @@
 from django.forms.models import inlineformset_factory
+from .models import Course, Lesson
 
-from .models import Course, Module
-
-
-ModuleFormSet = inlineformset_factory(
+LessonFormSet = inlineformset_factory(
     Course,
-    Module,
+    Lesson,
     fields=['title', 'description'],
     extra=1,
     can_delete=True

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Профіль викладача{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <!-- Teacher Name -->
+  <h2 class="mb-2">{{ profile.full_name }}</h2>
+
+  <!-- Edit Profile Button (only for owner) -->
+  {% if request.user == profile.user %}
+    <a href="{% url 'teacher_profile_edit' profile.id %}"
+       class="btn btn-primary btn-sm mb-3">
+      ✏️ Редагувати профіль
+    </a>
+  {% endif %}
+
+  <!-- Description -->
+  <p class="text-muted">{{ profile.description }}</p>
+
+  <!-- Social Links -->
+  <h4 class="mt-4">Соціальні мережі</h4>
+  <ul class="list-unstyled">
+
+    {% if profile.youtube %}
+      <li class="mb-1">
+        <i class="bi bi-youtube text-danger"></i>
+        <a href="{{ profile.youtube }}" target="_blank">YouTube</a>
+      </li>
+    {% endif %}
+
+    {% if profile.telegram %}
+      <li class="mb-1">
+        <i class="bi bi-telegram text-primary"></i>
+        <a href="{{ profile.telegram }}" target="_blank">Telegram</a>
+      </li>
+    {% endif %}
+
+    {% if profile.linkedin %}
+      <li class="mb-1">
+        <i class="bi bi-linkedin text-info"></i>
+        <a href="{{ profile.linkedin }}" target="_blank">LinkedIn</a>
+      </li>
+    {% endif %}
+
+    {% if profile.website %}
+      <li class="mb-1">
+        <i class="bi bi-globe"></i>
+        <a href="{{ profile.website }}" target="_blank">Website</a>
+      </li>
+    {% endif %}
+
+    {% if not profile.youtube and not profile.telegram and not profile.linkedin and not profile.website %}
+      <p class="text-muted">Викладач ще не додав соціальні мережі.</p>
+    {% endif %}
+  </ul>
+
+  <!-- Courses -->
+  <h4 class="mt-4">Курси викладача</h4>
+  <ul>
+    {% for course in courses %}
+      <li>
+        <a href="{% url 'course_detail' course.slug %}">{{ course.title }}</a>
+      </li>
+    {% empty %}
+      <p class="text-muted">Немає курсів</p>
+    {% endfor %}
+  </ul>
+
+</div>
+{% endblock %}
